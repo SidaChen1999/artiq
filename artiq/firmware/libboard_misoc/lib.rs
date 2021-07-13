@@ -1,5 +1,6 @@
 #![no_std]
 #![feature(asm, try_from)]
+#![feature(extern_prelude)]
 
 extern crate byteorder;
 #[cfg(feature = "log")]
@@ -43,3 +44,5 @@ pub mod io_expander;
 pub mod net_settings;
 #[cfg(has_slave_fpga_cfg)]
 pub mod slave_fpga;
+#[cfg(any(soc_platform = "kasli", soc_platform = "sayma_amc"))]
+pub mod flash;

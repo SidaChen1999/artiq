@@ -1,7 +1,8 @@
 use log::{self, LevelFilter};
 
 use io::{Write, ProtoWrite, Error as IoError};
-use board_misoc::{config, boot};
+use board_misoc::{config, flash}; 
+use board_misoc;
 use logger_artiq::BufferLogger;
 use mgmt_proto::*;
 use sched::{Io, TcpListener, TcpStream, Error as SchedError};
@@ -143,28 +144,37 @@ fn worker(io: &Io, stream: &mut TcpStream) -> Result<(), Error<SchedError>> {
                     Ok(())
                 })?;
             }
-
-            Request::Hotswap(firmware) => {
-                Reply::RebootImminent.write_to(stream)?;
-                stream.close()?;
-                stream.flush()?;
-
-                profiler::stop();
-                warn!("hotswapping firmware");
-                unsafe { boot::hotswap(&firmware) }
-            }
-            Request::Reboot => {
-                Reply::RebootImminent.write_to(stream)?;
-                stream.close()?;
-                stream.flush()?;
-
-                profiler::stop();
-                warn!("restarting");
-                unsafe { boot::reset() }
-            }
-
             Request::DebugAllocator =>
                 unsafe { println!("{}", ::ALLOC) },
+
+            Request::FlashWrite { key, value } => {
+                info!("Writing {}", key);
+                match flash::write(&key, &value) {
+                    Ok(_)  => {
+                        info!("Writing {} success", key);
+                        Reply::RebootImminent.write_to(stream)
+                    }
+                    Err(board_misoc::spiflash::Error::WriteFail{ sector }) => {
+                        error!("Flash writing failed on {} in sector {}", key, sector);
+                        Reply::Error.write_to(stream)
+                    }
+                    Err(board_misoc::spiflash::Error::CorruptedFirmware) => {
+                        error!("Corrupted firmware is not flashed");
+                        Reply::CorruptedFirmware.write_to(stream)
+                    }
+                    Err(board_misoc::spiflash::Error::AlreadyLocked) => {
+                        error!("Attempt at reentrant access");
+                        Reply::Error.write_to(stream)
+                    }
+                    Err(_) => {
+                        error!("Flash writing failed");
+                        Reply::Error.write_to(stream)
+                    } 
+                }?;
+            }
+            Request::Reload => {
+                flash::reload();
+            }
         };
     }
 }
