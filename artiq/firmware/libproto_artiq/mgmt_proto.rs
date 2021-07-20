@@ -71,10 +71,10 @@ pub enum Request {
     StopProfiler,
     GetProfile,
 
-    Hotswap(Vec<u8>),
-    Reboot,
-
     DebugAllocator,
+
+    FlashWrite { key: String, value: Vec<u8> },
+    Reload,
 }
 
 pub enum Reply<'a> {
@@ -89,6 +89,8 @@ pub enum Reply<'a> {
     Profile,
 
     RebootImminent,
+
+    CorruptedFirmware,
 }
 
 impl Request {
@@ -138,10 +140,13 @@ impl Request {
             10 => Request::StopProfiler,
             11 => Request::GetProfile,
 
-            4 => Request::Hotswap(reader.read_bytes()?),
-            5 => Request::Reboot,
-
             8 => Request::DebugAllocator,
+
+            16 => Request::FlashWrite {
+                key:   reader.read_string()?,
+                value: reader.read_bytes()?
+            },
+            17 => Request::Reload,
 
             ty => return Err(Error::UnknownPacket(ty))
         })
@@ -181,6 +186,10 @@ impl<'a> Reply<'a> {
 
             Reply::RebootImminent => {
                 writer.write_u8(3)?;
+            }
+
+            Reply::CorruptedFirmware => {
+                writer.write_u8(8)?;
             }
         }
         Ok(())
