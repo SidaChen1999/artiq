@@ -81,6 +81,10 @@ def get_argparser():
 
     subparsers.add_parser("erase", help="fully erase core device config")
 
+    # booting
+    t_boot = tools.add_parser("reboot",
+                              help="reboot the running system")
+
     # profiling
     t_profile = tools.add_parser("profile",
                                  help="account for communications CPU time")
@@ -125,11 +129,11 @@ def get_argparser():
 
     # flash
     t_flash = tools.add_parser("flash",
-                        help="ARTIQ flashing/deployment tool though internet")
+                        help="ARTIQ flashing/deployment tool")
 
     t_flash.add_argument("action", metavar="ACTION", nargs="*",
                         default=[],
-                        help="actions to perform, default: gateware/bootloader/firmware/start")
+                        help="actions to perform, default: gateware/bootloader/firmware")
     t_flash.add_argument("-d", "--dir", help="look for board binaries in this directory")
     t_flash.add_argument("-V", "--variant", default=None,
                         help="board variant. Autodetected if only one is installed.")
@@ -182,6 +186,9 @@ def main():
         if args.action == "erase":
             mgmt.config_erase()
 
+    if args.tool == "reboot":
+        mgmt.reboot()
+
     if args.tool == "profile":
         if args.action == "start":
             mgmt.start_profiler(args.interval, args.hits_size, args.edges_size)
@@ -204,7 +211,7 @@ def main():
     if args.tool == "flash":
         (variant, bin_dir, variant_dir, rtm_variant_dir) = build_dir(args)
         if not args.action:
-            args.action = "gateware bootloader firmware start".split()
+            args.action = "gateware bootloader firmware".split()
         for action in args.action:
             if action == "gateware":
                 gateware_bin = convert_gateware(
@@ -224,10 +231,7 @@ def main():
                 with open(firmware_fbi, "rb") as fi:
                     file = fi.read()
                     mgmt.flash_write(action, file)
-            elif action == "start":
-                print('Reloading')
-                if mgmt.reload():
-                    mgmt.close()
+
 
 if __name__ == "__main__":
     main()

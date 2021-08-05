@@ -89,12 +89,12 @@ unsafe fn write_page(addr: usize, data: &[u8]) {
     for &byte in data {
         write_byte(byte)
     }
-
+    
     csr::spiflash::bitbang_write(PIN_CS_N);
     csr::spiflash::bitbang_write(0);
-
+    
     wait_until_ready();
-
+    
     csr::spiflash::bitbang_en_write(0);
 }
 
@@ -105,13 +105,18 @@ pub unsafe fn write(mut addr: usize, mut data: &[u8]) {
         addr += size;
         data  = &data[size..];
     }
-
+    
     while data.len() > 0 {
         let size = cmp::min(PAGE_SIZE as usize, data.len());
         write_page(addr, &data[..size]);
         addr += size;
         data  = &data[size..];
     }
+}
+
+pub unsafe fn reload () -> ! {
+    csr::icap::iprog_write(1);
+    loop {}
 }
 
 use core::{str, fmt};

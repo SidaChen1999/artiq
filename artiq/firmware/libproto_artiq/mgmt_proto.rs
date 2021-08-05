@@ -71,10 +71,11 @@ pub enum Request {
     StopProfiler,
     GetProfile,
 
+    Reboot,
+
     DebugAllocator,
 
     FlashWrite { key: String, value: Vec<u8> },
-    Reload,
 }
 
 pub enum Reply<'a> {
@@ -140,13 +141,14 @@ impl Request {
             10 => Request::StopProfiler,
             11 => Request::GetProfile,
 
+            5 => Request::Reboot,
+
             8 => Request::DebugAllocator,
 
             16 => Request::FlashWrite {
                 key:   reader.read_string()?,
                 value: reader.read_bytes()?
             },
-            17 => Request::Reload,
 
             ty => return Err(Error::UnknownPacket(ty))
         })
