@@ -231,3 +231,9 @@ class CommMgmt:
 
     def debug_allocator(self):
         self._write_header(Request.DebugAllocator)
+    
+    def flash_write(self, partition, firmware):
+        self._write_header(Request.FlashWrite)
+        self._write_string(partition)
+        self._write_bytes(firmware)
+        self._read_expect(Reply.RebootImminent)

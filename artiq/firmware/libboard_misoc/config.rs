@@ -37,41 +37,6 @@ mod imp {
         }
     }
 
-    // One flash sector immediately before the firmware.
-    // const ADDR: usize = ::mem::FLASH_BOOT_ADDRESS - spiflash::SECTOR_SIZE;
-    // const SIZE: usize = spiflash::SECTOR_SIZE;
-
-    // pub mod lock {
-    //     use core::slice;
-    //     use core::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
-    //     use super::Error;
-
-    //     static LOCKED: AtomicUsize = ATOMIC_USIZE_INIT;
-
-    //     pub struct Lock;
-
-    //     impl Lock {
-    //         pub fn take() -> Result<Lock, Error> {
-    //             if LOCKED.swap(1, Ordering::SeqCst) != 0 {
-    //                 Err(Error::AlreadyLocked)
-    //             } else {
-    //                 Ok(Lock)
-    //             }
-    //         }
-
-    //         pub fn data(&self, addr: usize) -> &'static [u8] {
-    //             unsafe { slice::from_raw_parts(addr as *const u8, super::SIZE) }
-    //         }
-    //     }
-
-    //     impl Drop for Lock {
-    //         fn drop(&mut self) {
-    //             LOCKED.store(0, Ordering::SeqCst)
-    //         }
-    //     }
-    // }
-
-    // use self::lock::Lock;
     use spiflash::lock::Lock;
 
     #[derive(Clone)]

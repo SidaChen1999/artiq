@@ -13,7 +13,7 @@ from sipyco import common_args
 
 from artiq import __version__ as artiq_version
 from artiq.core_flash import build_dir, artifact_path, convert_gateware
-from artiq.core_flash import *
+from artiq.core_flash import SSHClient, LocalClient
 
 
 def get_argparser():
@@ -374,7 +374,7 @@ def main():
         elif action == "firmware":
             firmware_fbis = []
             for firmware in "satman", "runtime":
-                filename = artifact_path(variant_dir, "software", firmware, firmware + ".fbi")
+                filename = artifact_path(args, bin_dir, variant_dir, "software", firmware, firmware + ".fbi")
                 if os.path.exists(filename):
                     firmware_fbis.append(filename)
             if not firmware_fbis:

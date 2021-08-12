@@ -6,7 +6,7 @@ from functools import partial
 from migen import *
 from migen.build.generic_platform import IOStandard
 
-from misoc.cores import gpio, icap
+from misoc.cores import gpio
 from misoc.integration.builder import builder_args, builder_argdict
 from misoc.interconnect.csr import *
 from misoc.targets.metlino import *
@@ -159,8 +159,6 @@ class Master(MiniSoC, AMPSoC):
         self.register_kernel_cpu_csrdevice("cri_con")
         self.submodules.routing_table = rtio.RoutingTableAccess(self.cri_con)
         self.csr_devices.append("routing_table")
-        self.submodules.icap = icap.ICAP(platform='metlino')
-        self.csr_devices.append("icap")
 
 
 def main():

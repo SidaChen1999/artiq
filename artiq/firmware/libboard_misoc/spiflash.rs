@@ -51,20 +51,36 @@ fn wait_until_ready() {
             }
             csr::spiflash::bitbang_write(0);
             csr::spiflash::bitbang_write(PIN_CS_N);
+            print!("sr: {:#08b}\t", sr);
             if sr & SR_WIP == 0 {
                 return
             }
+
+            // let mut fsr = 0;
+            // write_byte(0x70);
+            // for _ in 0..8 {
+            //     fsr <<= 1;
+            //     csr::spiflash::bitbang_write(PIN_DQ_I | PIN_CLK);
+            //     fsr |= csr::spiflash::miso_read();
+            //     csr::spiflash::bitbang_write(PIN_DQ_I);
+            // }
+            // csr::spiflash::bitbang_write(0);
+            // csr::spiflash::bitbang_write(PIN_CS_N);
+            // println!("fsr: {:#08b}", fsr);
+            // if fsr >> 7 == 1 {
+            //     return
+            // }
         }
     }
 }
 
 pub unsafe fn erase_sector(addr: usize) {
     let sector_addr = addr & !(csr::CONFIG_SPIFLASH_SECTOR_SIZE as usize - 1);
-
+    // println!("erasing");
     csr::spiflash::bitbang_en_write(1);
 
     wait_until_ready();
-
+    // println!("ready");
     write_byte(CMD_WREN);
     csr::spiflash::bitbang_write(PIN_CS_N);
 
@@ -73,7 +89,7 @@ pub unsafe fn erase_sector(addr: usize) {
     csr::spiflash::bitbang_write(PIN_CS_N);
 
     wait_until_ready();
-
+    // println!("done");
     csr::spiflash::bitbang_en_write(0);
 }
 
